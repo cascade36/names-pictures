@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台 - 儿童识字小报生成器</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="ri-dashboard-line"></i> 管理后台</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="ri-home-4-line"></i> 仪表盘
+                </a>
+                <a href="#themes" class="nav-item" onclick="showSection('themes')">
+                    <i class="ri-book-line"></i> 主题管理
+                </a>
+                <a href="#tasks" class="nav-item" onclick="showSection('tasks')">
+                    <i class="ri-task-line"></i> 任务管理
+                </a>
+                <a href="#stats" class="nav-item" onclick="showSection('stats')">
+                    <i class="ri-bar-chart-line"></i> 统计分析
+                </a>
+                <a href="#settings" class="nav-item" onclick="showSection('settings')">
+                    <i class="ri-settings-3-line"></i> 系统设置
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 仪表盘 -->
+            <section id="dashboard" class="content-section active">
+                <h1>仪表盘</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="ri-file-text-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalTasks">-</h3>
+                            <p>总任务数</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="ri-check-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="completedTasks">-</h3>
+                            <p>已完成</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="ri-loader-4-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="processingTasks">-</h3>
+                            <p>处理中</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="activeUsers">-</h3>
+                            <p>活跃用户</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-card">
+                        <h3>最近7天任务趋势</h3>
+                        <canvas id="taskTrendChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>主题使用分布</h3>
+                        <canvas id="themeDistChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 主题管理 -->
+            <section id="themes" class="content-section">
+                <h1>主题管理</h1>
+                <div class="section-actions">
+                    <button class="btn-primary" onclick="showAddThemeModal()">
+                        <i class="ri-add-line"></i> 添加新主题
+                    </button>
+                </div>
+                <div class="themes-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>主题名称</th>
+                                <th>词汇数量</th>
+                                <th>使用次数</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="themesTableBody">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 任务管理 -->
+            <section id="tasks" class="content-section">
+                <h1>任务管理</h1>
+                <div class="filter-bar">
+                    <select id="taskFilter">
+                        <option value="all">全部任务</option>
+                        <option value="processing">处理中</option>
+                        <option value="completed">已完成</option>
+                        <option value="failed">失败</option>
+                    </select>
+                    <input type="date" id="dateFilter" />
+                    <button class="btn-secondary" onclick="refreshTasks()">
+                        <i class="ri-refresh-line"></i> 刷新
+                    </button>
+                </div>
+                <div class="tasks-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>主题</th>
+                                <th>标题</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>耗时</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 统计分析 -->
+            <section id="stats" class="content-section">
+                <h1>统计分析</h1>
+                <div class="stats-controls">
+                    <select id="statsPeriod">
+                        <option value="7">最近7天</option>
+                        <option value="30">最近30天</option>
+                        <option value="90">最近90天</option>
+                    </select>
+                    <button class="btn-secondary" onclick="exportStats()">
+                        <i class="ri-download-line"></i> 导出报表
+                    </button>
+                </div>
+                <div class="stats-content">
+                    <div class="stats-item">
+                        <h3>成功生成率</h3>
+                        <div class="progress-circle">
+                            <span id="successRate">-</span>
+                            <svg viewBox="0 0 36 36">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none" stroke="#eee" stroke-width="3" />
+                                <path id="successRatePath" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none" stroke="#4CAF50" stroke-width="3" stroke-dasharray="0, 100" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stats-item">
+                        <h3>平均生成时间</h3>
+                        <div class="big-number">
+                            <span id="avgTime">-</span> 秒
+                        </div>
+                    </div>
+                    <div class="stats-item">
+                        <h3>最受欢迎主题</h3>
+                        <div class="top-themes" id="topThemes">
+                            <!-- 动态加载 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 系统设置 -->
+            <section id="settings" class="content-section">
+                <h1>系统设置</h1>
+                <div class="settings-form">
+                    <div class="setting-group">
+                        <h3>API配置</h3>
+                        <div class="form-row">
+                            <label>Kie.ai API密钥</label>
+                            <input type="password" id="apiKey" value="••••••••••••••••" />
+                            <button class="btn-secondary" onclick="testApiKey()">测试连接</button>
+                        </div>
+                        <div class="form-row">
+                            <label>API基础URL</label>
+                            <input type="text" id="apiBaseUrl" value="https://api.kie.ai/v1" />
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>性能设置</h3>
+                        <div class="form-row">
+                            <label>最大并发任务数</label>
+                            <input type="number" id="maxConcurrency" value="5" min="1" max="20" />
+                        </div>
+                        <div class="form-row">
+                            <label>任务超时时间(秒)</label>
+                            <input type="number" id="taskTimeout" value="300" min="60" max="1800" />
+                        </div>
+                    </div>
+
+                    <div class="setting-actions">
+                        <button class="btn-primary" onclick="saveSettings()">
+                            <i class="ri-save-line"></i> 保存设置
+                        </button>
+                        <button class="btn-secondary" onclick="resetSettings()">
+                            <i class="ri-restart-line"></i> 恢复默认
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>儿童识字小报生成器</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <h1><i class="ri-book-2-line"></i> 儿童识字小报生成器</h1>
+            <p>使用AI技术，为孩子们创建有趣的识字学习材料</p>
+        </header>
+
+        <!-- 主表单区 -->
+        <section class="form-section">
+            <form id="newspaperForm" class="form-card">
+                <h2>创建识字小报</h2>
+
+                <!-- 主题选择 -->
+                <div class="form-group">
+                    <label for="theme">
+                        <i class="ri-palette-line"></i> 选择主题/场景
+                    </label>
+                    <select id="theme" name="theme" required>
+                        <option value="">请选择主题...</option>
+                        <option value="超市">超市购物</option>
+                        <option value="医院">医院看病</option>
+                        <option value="公园">公园游玩</option>
+                    </select>
+                    <small class="help-text">选择孩子熟悉的场景</small>
+                </div>
+
+                <!-- 标题输入 -->
+                <div class="form-group">
+                    <label for="title">
+                        <i class="ri-text"></i> 小报标题
+                    </label>
+                    <input type="text" id="title" name="title"
+                           placeholder="例如：快乐超市之旅"
+                           maxlength="20" required>
+                    <small class="help-text">给小报起一个有趣的名字（最多20个字）</small>
+                </div>
+
+                <!-- 样式选择 -->
+                <div class="form-group">
+                    <label>
+                        <i class="ri-brush-line"></i> 画面风格
+                    </label>
+                    <div class="style-options">
+                        <label class="style-option">
+                            <input type="radio" name="style" value="cartoon" checked>
+                            <span class="style-label">
+                                <i class="ri-emotion-happy-line"></i> 卡通风格
+                            </span>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="style" value="watercolor">
+                            <span class="style-label">
+                                <i class="ri-palette-line"></i> 水彩风格
+                            </span>
+                        </label>
+                        <label class="style-option">
+                            <input type="radio" name="style" value="simple">
+                            <span class="style-label">
+                                <i class="ri-shapes-line"></i> 简约风格
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 自定义词汇 -->
+                <div class="form-group">
+                    <label for="customWords">
+                        <i class="ri-add-circle-line"></i> 添加自定义词汇（可选）
+                    </label>
+                    <textarea id="customWords" name="customWords"
+                              rows="3"
+                              placeholder="输入额外的词汇，用逗号分隔"></textarea>
+                    <small class="help-text">例如：冰淇淋,玩具,气球</small>
+                </div>
+
+                <!-- 生成按钮 -->
+                <button type="submit" class="btn-primary">
+                    <i class="ri-magic-line"></i> 开始生成
+                </button>
+            </form>
+        </section>
+
+        <!-- 生成进度区 -->
+        <section id="progressSection" class="progress-section hidden">
+            <div class="progress-card">
+                <div class="loading-animation">
+                    <div class="spinner"></div>
+                </div>
+                <h3>正在生成识字小报...</h3>
+                <p id="progressText">AI正在为您的孩子创作独特的识字内容</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="estimated-time">预计需要 <span id="estimatedTime">30</span> 秒</p>
+            </div>
+        </section>
+
+        <!-- 结果展示区 -->
+        <section id="resultSection" class="result-section hidden">
+            <div class="result-card">
+                <h2>生成成功！</h2>
+                <div class="result-image-container">
+                    <img id="resultImage" src="" alt="生成的识字小报">
+                    <div class="image-actions">
+                        <button class="btn-secondary" onclick="downloadImage()">
+                            <i class="ri-download-line"></i> 下载图片
+                        </button>
+                        <button class="btn-secondary" onclick="shareImage()">
+                            <i class="ri-share-line"></i> 分享
+                        </button>
+                        <button class="btn-primary" onclick="createNew()">
+                            <i class="ri-add-line"></i> 创建新的
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 词汇列表 -->
+                <div class="word-list">
+                    <h3>本小报包含的词汇</h3>
+                    <div id="wordGrid" class="word-grid">
+                        <!-- 词汇将通过JS动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 历史记录 -->
+        <section class="history-section">
+            <h2>最近生成</h2>
+            <div id="historyGrid" class="history-grid">
+                <!-- 历史记录将通过JS动态加载 -->
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>&copy; 2024 儿童识字小报生成器 | 使用 Kie.ai 技术驱动</p>
+            <div class="footer-links">
+                <a href="#" onclick="showHelp()">使用帮助</a>
+                <a href="#" onclick="showAbout()">关于我们</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 弹窗模态框 -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
