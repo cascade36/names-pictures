@@ -1,7 +1,9 @@
 // 测试用例 - API接口测试
 const request = require('supertest');
 
-// Jest 默认 NODE_ENV=test；本项目在 test 环境会自动启用 mock 图片生成，避免外部 API 依赖
+// 强制启用 mock 图片生成，避免测试触发外部 API 调用和异步轮询导致 Jest 不退出
+process.env.MOCK_IMAGE_GENERATION = 'true';
+
 const app = require('../server');
 
 describe('儿童识字小报API测试', () => {

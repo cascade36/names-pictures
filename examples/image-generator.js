@@ -194,7 +194,10 @@ class ImageGeneratorService {
                 limit: response.data.limit
             };
         } catch (error) {
-            console.error('获取配额信息失败:', error.message);
+            // Kie.ai 的 Nano Banana Pro 文档未包含配额接口；遇到 404 时静默忽略，避免干扰健康检查日志
+            if (error.response?.status !== 404) {
+                console.error('获取配额信息失败:', error.message);
+            }
             return null;
         }
     }
