@@ -1,0 +1,43 @@
+services:
+  api:
+    build:
+      context: ../examples
+      dockerfile: Dockerfile
+    container_name: names-pictures-api
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Persist tasks to /data/tasks.json inside the container
+      - TASK_STORE_PATH=/data/tasks.json
+      # Make sure mock is off in production
+      - MOCK_IMAGE_GENERATION=false
+      # Required: set KIE_API_KEY via .env (see deploy/README.md)
+      - KIE_API_KEY=${KIE_API_KEY}
+      # Allow your public origin(s)
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    volumes:
+      - ./data/api:/data
+      - ./data/logs:/app/logs
+      - ./data/uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - app
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: names-pictures-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../frontend:/srv/frontend:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/caddy/data:/data
+      - ./data/caddy/config:/config
+    restart: unless-stopped
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge

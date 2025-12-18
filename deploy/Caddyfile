@@ -1,0 +1,18 @@
+# Replace with your real domain (recommended: subdomain like names.nuxnow.com)
+# Make sure DNS A record points to your VPS and ports 80/443 are open.
+
+names.nuxnow.com {
+	encode gzip
+
+	# API first
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+	handle /health {
+		reverse_proxy api:3000
+	}
+
+	# Frontend static files
+	root * /srv/frontend
+	file_server
+}

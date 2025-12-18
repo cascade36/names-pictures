@@ -19,6 +19,9 @@ yarn-error.log*
 **/uploads/
 **/.runtime/
 
+# Deploy data
+deploy/data/
+
 # Build outputs
 **/dist/
 **/build/
