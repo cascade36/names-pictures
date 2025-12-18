@@ -1,8 +1,11 @@
 // 管理后台 JavaScript
 
 // API配置
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:3000/api/v1'
+const isLocalhost =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocalhost
+    ? `http://${window.location.hostname}:3000/api/v1`
     : '/api/v1';
 
 // 全局状态

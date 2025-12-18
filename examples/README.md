@@ -48,7 +48,7 @@ MOCK_IMAGE_GENERATION=true
 
 如前端在 `http://localhost:8000` 等端口运行，请将其加入跨域白名单：
 ```env
-ALLOWED_ORIGINS=http://localhost:8000,http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000,http://127.0.0.1:3000
 ```
 
 ### 4. 启动服务
