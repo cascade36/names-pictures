@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 
 class NewspaperController {
-    constructor(kieApiKey) {
+    constructor(kieApiKey, options = {}) {
         this.promptGenerator = new PromptGenerator();
         this.imageService = kieApiKey ? new ImageGeneratorService(kieApiKey) : null;
         const mockEnv = process.env.MOCK_IMAGE_GENERATION;
@@ -16,8 +16,24 @@ class NewspaperController {
                 : mockEnv === 'false'
                   ? false
                   : process.env.NODE_ENV !== 'production' && !kieApiKey;
-        // 这里应该连接实际的数据库
-        this.taskStore = new Map(); // 临时使用内存存储
+
+        this.taskStore = options.taskStore || new Map();
+    }
+
+    _getTask(id) {
+        return this.taskStore.get ? this.taskStore.get(id) : null;
+    }
+
+    _setTask(id, task) {
+        if (this.taskStore.set) {
+            this.taskStore.set(id, task);
+        }
+    }
+
+    _listTasks() {
+        if (typeof this.taskStore.list === 'function') return this.taskStore.list();
+        if (typeof this.taskStore.values === 'function') return Array.from(this.taskStore.values());
+        return [];
     }
 
     // 生成识字小报
@@ -69,7 +85,7 @@ class NewspaperController {
                 estimatedTime: this.imageService ? this.imageService.estimateProcessingTime(prompt) : 5,
                 callbackUrl: callback_url
             };
-            this.taskStore.set(taskId, task);
+            this._setTask(taskId, task);
 
             // 异步生成图片
             this.generateImageAsync(taskId, prompt, theme, title);
@@ -95,10 +111,10 @@ class NewspaperController {
     async generateImageAsync(taskId, prompt, theme, title) {
         try {
             // 更新任务状态
-            const task = this.taskStore.get(taskId);
+            const task = this._getTask(taskId);
             if (task) {
                 task.status = 'generating';
-                this.taskStore.set(taskId, task);
+                this._setTask(taskId, task);
             }
 
             if (this.mockImageGeneration) {
@@ -122,7 +138,7 @@ class NewspaperController {
                     createdAt: task?.createdAt || new Date(),
                     completedAt: new Date()
                 };
-                this.taskStore.set(taskId, completedTask);
+                this._setTask(taskId, completedTask);
 
                 if (task?.callbackUrl) {
                     this.sendCallback(task.callbackUrl, completedTask);
@@ -153,14 +169,14 @@ class NewspaperController {
                     },
                     prompt: prompt
                 };
-                this.taskStore.set(taskId, completedTask);
+                this._setTask(taskId, completedTask);
 
                 // 如果有回调URL，发送通知
                 if (task.callbackUrl) {
                     this.sendCallback(task.callbackUrl, completedTask);
                 }
             } else {
-                this.taskStore.set(taskId, result);
+                this._setTask(taskId, result);
             }
 
         } catch (error) {
@@ -171,7 +187,7 @@ class NewspaperController {
                 error: error.message,
                 completedAt: new Date()
             };
-            this.taskStore.set(taskId, failedTask);
+            this._setTask(taskId, failedTask);
         }
     }
 
@@ -179,7 +195,7 @@ class NewspaperController {
     async getTaskStatus(req, res) {
         try {
             const { task_id } = req.params;
-            const task = this.taskStore.get(task_id);
+            const task = this._getTask(task_id);
 
             if (!task) {
                 return res.status(404).json({
@@ -191,7 +207,9 @@ class NewspaperController {
             const response = {
                 task_id: task_id,
                 status: task.status,
-                created_at: task.createdAt
+                created_at: task.createdAt,
+                theme: task.theme,
+                title: task.title
             };
 
             if (task.status === 'completed') {
@@ -272,7 +290,7 @@ class NewspaperController {
                 status: this.imageService || this.mockImageGeneration ? 'healthy' : 'degraded',
                 timestamp: new Date(),
                 quota: quota,
-                active_tasks: Array.from(this.taskStore.values()).filter(t => t.status === 'processing' || t.status === 'generating').length,
+                active_tasks: this._listTasks().filter(t => t.status === 'processing' || t.status === 'generating').length,
                 kie_api_configured: Boolean(this.imageService),
                 mock_image_generation: Boolean(this.mockImageGeneration)
             });
@@ -287,7 +305,7 @@ class NewspaperController {
     // 获取所有任务（管理后台使用）
     async getAllTasks(req, res) {
         try {
-            const tasks = Array.from(this.taskStore.values())
+            const tasks = this._listTasks()
                 .map(task => {
                     const createdAt = task.createdAt ? new Date(task.createdAt) : null;
                     const completedAt = task.completedAt ? new Date(task.completedAt) : null;
@@ -330,7 +348,7 @@ class NewspaperController {
     // 获取统计信息（管理后台使用）
     async getStats(req, res) {
         try {
-            const tasks = Array.from(this.taskStore.values());
+            const tasks = this._listTasks();
             const total = tasks.length;
             const success = tasks.filter(t => t.status === 'completed').length;
 

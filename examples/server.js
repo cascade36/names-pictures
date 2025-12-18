@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const NewspaperController = require('./newspaper-controller');
+const TaskStore = require('./task-store');
 require('dotenv').config();
 
 const app = express();
@@ -115,7 +116,8 @@ if (!kieApiKey) {
     );
 }
 
-const newspaperController = new NewspaperController(kieApiKey);
+const taskStore = new TaskStore();
+const newspaperController = new NewspaperController(kieApiKey, { taskStore });
 
 // API路由文档
 app.get('/', (req, res) => {

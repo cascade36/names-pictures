@@ -252,6 +252,10 @@ POST /api/v1/newspaper/words/batch
 - 访问日志：`logs/access.log`
 - 错误日志：`logs/error.log`
 
+## 💾 任务持久化（本地）
+
+服务会将任务列表持久化到 `examples/.runtime/tasks.json`（自动创建，已在 `.gitignore` 忽略），重启后可保留管理后台的任务与统计数据。
+
 ## 🛡️ 安全特性
 
 - API密钥认证
