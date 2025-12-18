@@ -70,11 +70,26 @@ async function handleFormSubmit(e) {
             body: JSON.stringify(data)
         });
 
-        if (!response.ok) {
-            throw new Error('创建任务失败');
+        const raw = await response.text();
+        let result = null;
+        try {
+            result = raw ? JSON.parse(raw) : null;
+        } catch (_) {
+            // ignore
         }
 
-        const result = await response.json();
+        if (!response.ok) {
+            const message =
+                result?.message ||
+                result?.error ||
+                (raw && raw.length < 200 ? raw : null) ||
+                `创建任务失败 (HTTP ${response.status})`;
+            throw new Error(message);
+        }
+
+        if (!result) {
+            throw new Error('创建任务失败：响应格式不正确');
+        }
         currentTaskId = result.task_id;
 
         // 开始轮询任务状态
