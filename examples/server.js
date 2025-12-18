@@ -19,6 +19,38 @@ function parseAllowedOrigins(value) {
     return origins.length ? origins : null;
 }
 
+function normalizeUrlPort(url) {
+    if (url.port) return url.port;
+    return url.protocol === 'https:' ? '443' : '80';
+}
+
+function hostsEquivalent(hostA, hostB) {
+    const a = (hostA || '').toLowerCase();
+    const b = (hostB || '').toLowerCase();
+    const loopbacks = new Set(['localhost', '127.0.0.1', '::1']);
+    if (loopbacks.has(a) && loopbacks.has(b)) return true;
+    return a === b;
+}
+
+function originsMatch(allowedOrigin, requestOrigin) {
+    if (!allowedOrigin || !requestOrigin) return false;
+    if (allowedOrigin === '*' || requestOrigin === '*') return true;
+
+    try {
+        const allowedUrl = new URL(allowedOrigin);
+        const requestUrl = new URL(requestOrigin);
+
+        return (
+            allowedUrl.protocol === requestUrl.protocol &&
+            normalizeUrlPort(allowedUrl) === normalizeUrlPort(requestUrl) &&
+            hostsEquivalent(allowedUrl.hostname, requestUrl.hostname)
+        );
+    } catch (_) {
+        // Fallback to literal match if URL parsing fails
+        return allowedOrigin === requestOrigin;
+    }
+}
+
 // 安全中间件
 app.use(helmet());
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
@@ -35,7 +67,11 @@ app.use(cors({
         // 未配置 ALLOWED_ORIGINS 时，默认放行（方便本地开发）
         if (!allowedOrigins) return callback(null, true);
 
-        if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        if (
+            allowedOrigins.includes('*') ||
+            allowedOrigins.includes(origin) ||
+            allowedOrigins.some(allowed => originsMatch(allowed, origin))
+        ) {
             return callback(null, true);
         }
 
